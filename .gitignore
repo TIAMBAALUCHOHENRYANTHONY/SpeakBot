@@ -1,0 +1,39 @@
+# Ignorar el archivo .env que contiene las claves secretas
+.env
+
+# Archivos de entorno virtual de Python
+venv/
+ENV/
+env/
+.venv/
+.env/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de log
+*.log
+
+# Archivos de base de datos
+*.sqlite3
+
+# Archivos de configuración y datos de aplicaciones
+*.DS_Store
+*.swp
+*~
+
+# Archivos subidos por usuarios
+uploads/
+
+# Archivos de configuración de IDE
+.vscode/
+.idea/
+
+# Archivos de configuración de sistemas operativos
+Thumbs.db
+.DS_Store
+
+# Archivos y carpetas generados por Flask
+instance/
