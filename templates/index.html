@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Assistant</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-gaBDvhS2EoA3QPwSd32aJS3mUldkW5MszdvONoP4YWOdd8IeKKMeKrcC1UcNPov+aOf3uk7TW7nKdVSYfj8wMw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://assets.isu.pub/document-structure/221028141648-1be45dab0b50bae68e9c7a760115c5ea/v1/b39151246512283b7a1104a841e5003e.jpeg');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 360px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 700px;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header, .chat-footer {
+            text-align: center;
+            background-color: #a5d6a7;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            color: #2e7d32;
+            margin: 0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+        }
+
+        .message.bot {
+            background-color: #c8e6c9;
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background-color: #81c784;
+            align-self: flex-end;
+            color: white;
+        }
+
+        .rating {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .rating i {
+            color: #ffcc00;
+            cursor: pointer;
+        }
+
+        .theme-selector {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .theme-selector select {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #a5d6a7;
+            font-size: 16px;
+            background-color: #ffffff;
+            color: #2e7d32;
+        }
+
+        #recordButton {
+            background-color: #66bb6a;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 20px;
+            font-size: 20px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #recordButton:hover {
+            background-color: #4caf50;
+            transform: scale(1.1);
+        }
+
+        #recordButton:active {
+            background-color: #388e3c;
+            transform: scale(1.05);
+        }
+
+        #recordButton i {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .bot-image {
+            position: absolute;
+            top: 20px;
+            left: -60px;
+            width: 100px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <img src="https://cdn-icons-png.flaticon.com/128/5226/5226034.png" alt="Bot Image" class="bot-image">
+        <div class="chat-header">
+            <h1>ESPE SPEAKBOT</h1>
+        </div>
+        <div class="theme-selector">
+            <select id="themeSelector" onchange="generateInitialQuestion()">
+                <option value="likes_and_dislikes">Likes and Dislikes</option>
+                <option value="family_and_friends">Family and Friends</option>
+                <option value="school_and_work">School and Work</option>
+                <option value="holiday_and_travel">Holiday and Travel</option>
+                <option value="compare_and_contrast">Compare and Contrast</option>
+                <option value="advantages_and_disadvantages">Advantages and Disadvantages</option>
+                <option value="environment_problems">Environment Problems</option>
+            </select>
+        </div>
+        <div class="chat-messages">
+            <div class="message bot">
+                Hi! I'm a chat bot. How can I help you?
+            </div>
+        </div>
+        <div class="rating">
+            <p>Escuchando ...</p>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+        </div>
+        <button id="recordButton"><i id="microphone-icon" class="fas fa-microphone"></i></button>
+    </div>
+
+    <script>
+        let recorder, gumStream;
+
+        document.getElementById("recordButton").addEventListener("click", startRecording);
+
+        function startRecording() {
+            const constraints = { audio: true };
+
+            navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+                gumStream = stream;
+                const audioContext = new AudioContext();
+                const input = audioContext.createMediaStreamSource(stream);
+                recorder = new Recorder(input, { numChannels: 1 });
+
+                recorder.record();
+
+                setTimeout(stopRecording, 5000); // Record for 5 seconds
+            }).catch(function(err) {
+                console.log("getUserMedia error: ", err);
+            });
+        }
+
+        function stopRecording() {
+            recorder.stop();
+            gumStream.getAudioTracks()[0].stop();
+
+            recorder.exportWAV(sendRecording);
+        }
+
+        function sendRecording(blob) {
+            const formData = new FormData();
+            formData.append('file', blob, 'input.wav');
+
+            fetch('/transcribir', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(result => {
+                const userMessage = document.createElement('div');
+                userMessage.className = 'message user';
+                userMessage.innerText = result.texto;
+                document.querySelector('.chat-messages').appendChild(userMessage);
+
+                const theme = document.getElementById("themeSelector").value;
+
+                return fetch('/responder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: result.texto, theme: theme }),
+                });
+            })
+            .then(response => response.json())
+            .then(result => {
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                botMessage.innerText = result.respuesta;
+                document.querySelector('.chat-messages').appendChild(botMessage);
+
+                leerRespuesta(result.respuesta);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function leerRespuesta(texto) {
+            const speech = new SpeechSynthesisUtterance(texto);
+            speech.lang = 'en-US';
+            window.speechSynthesis.speak(speech);
+        }
+
+        function generateInitialQuestion() {
+            const theme = document.getElementById("themeSelector").value;
+
+            fetch('/pregunta_inicial', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: theme }),
+            })
+            .then(response => response.json())
+            .then(result => {
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                botMessage.innerText = result.pregunta;
+                document.querySelector('.chat-messages').appendChild(botMessage);
+
+                leerRespuesta(result.pregunta);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
