@@ -3,14 +3,10 @@ on:
   push:
     branches:
       - main
-      - develop
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   sonarcloud:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,4 +16,5 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+          SONAR_PROJECT_KEY: "TIAMBAALUCHOHENRYANTHONY_SpeakBot"
+          SONAR_ORGANIZATION: "tiambaaluchohenryanthony"
